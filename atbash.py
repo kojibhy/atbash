@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import argparse
 import itertools
+import os.path
 import string
 import sys
+import typing
 
 
 class ATBashCipher:
@@ -64,7 +66,16 @@ class SharedARGS:
     def __call__(self, parser: argparse.ArgumentParser, *args, **kwargs):
         parser.add_argument(
             "--text",
-            required=True
+            required=False
+        )
+        parser.add_argument(
+            "--file",
+            required=False
+        )
+        parser.add_argument(
+            "--output",
+            required=False,
+            default=None,
         )
         parser.add_argument(
             "--lookup-table",
@@ -123,24 +134,62 @@ class CliManager:
         self.exec_decrypt(args)
 
     @staticmethod
-    def exec_encrypt(args: argparse.Namespace):
-        kwargs = {}
-        if args.lookup_table:
-            kwargs["lookup_table"] = args.lookup_table
+    def read_file(path: str) -> typing.Tuple[str, str]:
 
-        cipher = ATBashCipher(**kwargs)
-
-        print(cipher.encrypt(args.text))
+        if os.path.exists(path) and os.path.isfile(path):
+            file_name: str = os.path.split(path)[-1]
+            with open(path, 'r') as f:
+                return file_name, f.read()
+        else:
+            raise ValueError(f"path: {path} dose not exists or is not file!")
 
     @staticmethod
-    def exec_decrypt(args: argparse.Namespace):
+    def write_file(path: str, content: str):
+
+        with open(path, 'w') as f:
+            f.write(content)
+
+    def exec_encrypt(self, args: argparse.Namespace):
         kwargs = {}
         if args.lookup_table:
             kwargs["lookup_table"] = args.lookup_table
 
         cipher = ATBashCipher(**kwargs)
 
-        print(cipher.decrypt(args.text))
+        if args.text:
+            print(cipher.encrypt(args.text))
+        elif args.file:
+            file_name, content = self.read_file(args.file)
+            if not args.output:
+                output = "atbash_" + file_name
+            else:
+                output = args.output
+            cipher_text: str = cipher.encrypt(content)
+            self.write_file(output, cipher_text)
+            print(f"Encrypted: {output}")
+
+        else:
+            raise ValueError(f"No --text or --file ")
+
+    def exec_decrypt(self, args: argparse.Namespace):
+        kwargs = {}
+        if args.lookup_table:
+            kwargs["lookup_table"] = args.lookup_table
+
+        cipher = ATBashCipher(**kwargs)
+        if args.text:
+            print(cipher.decrypt(args.text))
+        elif args.file:
+            file_name, content = self.read_file(args.file)
+            if not args.output:
+                output = "decrypted_" + file_name
+            else:
+                output = args.output
+            cipher_text: str = cipher.decrypt(content)
+            self.write_file(output, cipher_text)
+            print(f"Decrypted: {output}")
+        else:
+            raise ValueError(f"No --text or --file ")
 
 
 if __name__ == '__main__':
