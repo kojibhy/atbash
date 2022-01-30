@@ -1,3 +1,15 @@
+
+```text
+usage: atbash.py [-h] [--text TEXT] [--file FILE] [--output OUTPUT] [--lookup-table LOOKUP_TABLE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --text TEXT
+  --file FILE
+  --output OUTPUT
+  --lookup-table LOOKUP_TABLE
+
+```
 # Text Encrypt/Decrypt
 - encrypt plain text message;
 ```bash

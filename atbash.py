@@ -28,12 +28,15 @@ class ATBashCipher:
                                  itertools.zip_longest(list(string.ascii_uppercase), reversed_ascii, fillvalue=None)}
 
     def encrypt(self, plain_text: str):
+        # main method for encrypting a pain text message
         if not self.lookup_table:
-            raise ValueError(f"lookup_table is empty!")
+            raise ValueError(f"Lookup_table is empty!")
         chars = []
+
+        c: str
+        transformed_char: str
         for c in plain_text:
-            # check if char exists in lookup table
-            transformed_char: str
+            # check if char exists in lookup table, else ignore transformation
             if transformed_char := self.lookup_table.get(c.upper()):
                 if not c.isupper():
                     chars.append(
@@ -46,8 +49,10 @@ class ATBashCipher:
         return "".join(chars)
 
     def decrypt(self, cipher_text: str):
+        # main method for decrypting a message
         chars = []
         reverse_lookup_table = {v: k for k, v in dict(self.lookup_table).items()}
+        # check if char exists in lookup table, else ignore transformation
         for c in cipher_text:
             transformed_char: str
             if transformed_char := reverse_lookup_table.get(c.upper()):
@@ -157,7 +162,13 @@ class CliManager:
         cipher = ATBashCipher(**kwargs)
 
         if args.text:
-            print(cipher.encrypt(args.text))
+            cipher_text = cipher.encrypt(args.text)
+
+            if not args.output:
+                print(cipher_text)
+            else:
+                self.write_file(args.output, cipher_text + "\n")
+                print(f"Encrypted: {args.output}")
         elif args.file:
             file_name, content = self.read_file(args.file)
             if not args.output:
@@ -165,7 +176,7 @@ class CliManager:
             else:
                 output = args.output
             cipher_text: str = cipher.encrypt(content)
-            self.write_file(output, cipher_text)
+            self.write_file(output, cipher_text + "\n")
             print(f"Encrypted: {output}")
 
         else:
@@ -178,7 +189,12 @@ class CliManager:
 
         cipher = ATBashCipher(**kwargs)
         if args.text:
-            print(cipher.decrypt(args.text))
+            plain_text = cipher.decrypt(args.text)
+            if not args.output:
+                print(plain_text)
+            else:
+                self.write_file(args.output, plain_text + "\n")
+                print(f"Decrypted: {args.output}")
         elif args.file:
             file_name, content = self.read_file(args.file)
             if not args.output:
@@ -186,7 +202,7 @@ class CliManager:
             else:
                 output = args.output
             cipher_text: str = cipher.decrypt(content)
-            self.write_file(output, cipher_text)
+            self.write_file(output, cipher_text + "\n")
             print(f"Decrypted: {output}")
         else:
             raise ValueError(f"No --text or --file ")
